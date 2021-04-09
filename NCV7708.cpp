@@ -7,12 +7,12 @@
 
 
 
-NCV7708::NCV7708(uint8_t _SS)
+NCV7708::NCV7708(uint8_t _SS,uint8_t plytka)
 {
     SS = _SS;
     pinMode(SS, OUTPUT);
     digitalWrite(SS, HIGH); //csb
-    
+    _plytka = plytka;
 }
 void NCV7708::silnik_prawo(uint8_t numer_silnika)
 {
@@ -73,15 +73,29 @@ void NCV7708::silnik_start(uint8_t numer_silnika, uint16_t maska)
 
 void NCV7708::wysylka()
 {
-    pinMode(SS, OUTPUT);
-    digitalWrite(SS, HIGH);
-    SPI.begin();
-    // ESP32 SPI.begin(14,2,15,13);//SCK,MISO,MOSI,ss 
-    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
-    digitalWrite(SS, LOW);
-    SPI.transfer16(silnik);
-    digitalWrite(SS, HIGH);
-    SPI.end();
+    if (_plytka == 1)
+    {
+        SPI.begin(14, 12, 13, SS);//SCK,MISO,MOSI,ss 
+        SPI.setClockDivider(SPI_CLOCK_DIV32);
+        SPI.setDataMode(SPI_MODE1);
+        SPI.setBitOrder(MSBFIRST);
+        digitalWrite(SS, LOW);
+        SPI.transfer16(silnik);
+        digitalWrite(SS, HIGH);
+        SPI.end();
+    }
+
+    else
+    {
+        pinMode(SS, OUTPUT);
+        digitalWrite(SS, HIGH);
+        SPI.begin();
+        SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+        digitalWrite(SS, LOW);
+        SPI.transfer16(silnik);
+        digitalWrite(SS, HIGH);
+        SPI.end();
+    }
     
 }
 
